@@ -215,13 +215,18 @@ export function TerminalDashboard() {
         </div>
       )}
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
-        <MovementForm
-          data={data}
-          loading={loading}
-          onChange={handleChange}
-          onConsult={handleConsult}
-        />
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
+        {/* Esta div "sticky" faz o formulário (e o botão) acompanharem a rolagem da tela */}
+        <div className="sticky top-6 z-10">
+          <MovementForm
+            data={data}
+            loading={loading}
+            onChange={handleChange}
+            onConsult={handleConsult}
+          />
+        </div>
+
+        {/* O YardMap continua logo abaixo, do jeito que estava */}
         <YardMap
           slots={slots}
           targetId={targetId}
