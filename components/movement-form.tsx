@@ -103,7 +103,7 @@ export function MovementForm({
             </label>
             <input
               id="departure"
-              type="date"
+              type="datetime-local"
               value={data.departure}
               onChange={(e) => onChange({ departure: e.target.value })}
               className="h-11 rounded-lg border border-input bg-background px-3 text-sm text-foreground [color-scheme:dark] focus:border-primary focus:outline-none focus:ring-2 focus:ring-ring/40"
@@ -148,7 +148,11 @@ export function MovementForm({
             htmlFor="isIMO"
             className="flex cursor-pointer select-none items-center gap-2 text-sm font-medium"
           >
-            Sinalizar como Carga IMO <AlertTriangle />
+            Sinalizar como Carga IMO{" "}
+            <AlertTriangle
+              className="size-4 text-orange-500"
+              aria-hidden="true"
+            />
             <span className="text-xs font-normal text-muted-foreground">
               (Produto Perigoso)
             </span>

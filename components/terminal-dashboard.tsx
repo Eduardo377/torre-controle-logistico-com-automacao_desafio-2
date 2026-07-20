@@ -8,6 +8,7 @@ import { Footer } from "@/components/footer";
 import { GhostContainer } from "@/components/ghost-container";
 import { ContainerGrabber } from "@/components/container-grabber";
 import { StatusAlerts } from "@/components/status-alerts";
+import { YardFilters, type FilterState } from "@/components/yard-filters";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -37,6 +38,18 @@ export function TerminalDashboard() {
   // Estados do Guindaste (Sticky Drag)
   const [isGrabbed, setIsGrabbed] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  // Estado completo dos Filtros e Ordenação Temporal
+  const [filters, setFilters] = useState<FilterState>({
+    searchId: "",
+    peso: "",
+    status: "Todos",
+    zone: "Todas",
+    isIMO: "Todos",
+    dataChegada: "",
+    dataSaida: "",
+    sortBy: "nenhum",
+  });
 
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -88,7 +101,8 @@ export function TerminalDashboard() {
               dataChegada: dataHora?.replace(/"/g, "").trim(),
               dataSaida: saidaPrevista?.replace(/"/g, "").trim(),
               zone: zona?.replace(/"/g, "").trim(),
-              isIMO: imo?.replace(/"/g, "").trim() === "TRUE",
+              // Conversão explícita de string do CSV para boolean estrito
+              isIMO: imo?.replace(/"/g, "").trim().toUpperCase() === "TRUE",
             };
           })
           .filter((s) => s.id);
@@ -98,9 +112,8 @@ export function TerminalDashboard() {
       }
     }
     fetchYardMap();
-  }, []);
+  }, [MAPA_PATIO_CSV_URL]);
 
-  // 1. Clean Code: Tipagem estrita para a resposta do Cérebro IA (Make.com)
   type WebhookResponse = {
     targetSlot?: string;
     justificativa?: string;
@@ -177,7 +190,6 @@ export function TerminalDashboard() {
     } catch (error: unknown) {
       console.error("Erro de Integração:", error);
 
-      // 2. Clean Code: Tratamento de erro seguro usando 'instanceof'
       const isError = error instanceof Error;
       const errorMessage = isError ? error.message : "";
 
@@ -196,16 +208,14 @@ export function TerminalDashboard() {
   async function handleDropSlot(slotId: string) {
     if (!containerReady || occupiedId) return;
 
-    // 1. Atualização Otimista: Muda a UI imediatamente (UX perfeita)
     setOccupiedId(slotId);
     setContainerReady(false);
-    setIsGrabbed(false); // Solta a caixa do mouse
+    setIsGrabbed(false);
     setResult({
       kind: slotId === targetId ? "success" : "risk",
       slot: slotId,
     });
 
-    // 2. O Braço: Envia os dados silenciosamente para o Make.com gravar
     try {
       const payloadGravacao = {
         vaga_confirmada: slotId,
@@ -224,7 +234,6 @@ export function TerminalDashboard() {
         return;
       }
 
-      // Dispara o POST sem travar a tela do usuário
       await fetch(WEBHOOK_GRAVACAO, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -234,7 +243,6 @@ export function TerminalDashboard() {
       console.log("Sucesso: Movimentação registrada na Torre de Controle.");
     } catch (error) {
       console.error("Falha ao gravar movimentação no banco:", error);
-      // Adicionar um Toast (alerta) de erro de rede.
     }
   }
 
@@ -266,14 +274,21 @@ export function TerminalDashboard() {
           />
         </div>
 
-        <YardMap
-          slots={slots}
-          targetId={targetId}
-          occupiedId={occupiedId}
-          containerId={displayId}
-          onDropSlot={handleDropSlot}
-          isGrabbed={isGrabbed}
-        />
+        <div className="flex flex-col gap-6">
+          <YardFilters
+            filters={filters}
+            onChange={(patch) => setFilters((prev) => ({ ...prev, ...patch }))}
+          />
+          <YardMap
+            slots={slots}
+            targetId={targetId}
+            occupiedId={occupiedId}
+            containerId={displayId}
+            onDropSlot={handleDropSlot}
+            isGrabbed={isGrabbed}
+            filters={filters}
+          />
+        </div>
       </div>
 
       <GhostContainer

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import type { Slot } from "@/lib/yard";
 import { ROWS_COUNT, LEVELS_COUNT } from "@/lib/yard";
 import { Crosshair, Layers } from "lucide-react";
+import type { FilterState } from "@/components/yard-filters";
 
 type YardMapProps = {
   slots: Slot[];
@@ -12,6 +13,7 @@ type YardMapProps = {
   containerId: string;
   isGrabbed: boolean;
   onDropSlot: (slotId: string) => void;
+  filters: FilterState;
 };
 
 export function YardMap({
@@ -21,6 +23,7 @@ export function YardMap({
   containerId,
   isGrabbed,
   onDropSlot,
+  filters,
 }: YardMapProps) {
   const [selectedLevel, setSelectedLevel] = useState<number>(1);
 
@@ -33,6 +36,7 @@ export function YardMap({
     }
   }, [targetId]);
 
+  // Renderiza TODOS os slots do nível atual (Geografia Fixa Garantida)
   const visibleSlots = slots.filter((slot) =>
     slot.id.endsWith(`-N${selectedLevel}`),
   );
@@ -98,7 +102,7 @@ export function YardMap({
         </div>
       </header>
 
-      {/* Grid de Slots */}
+      {/* Grid Fixo com Dimming (Esmaecimento) */}
       <div
         className="grid flex-1 gap-3"
         style={{
@@ -108,10 +112,66 @@ export function YardMap({
         {visibleSlots.map((slot) => {
           const isTarget = slot.id === targetId;
           const isNewlyOccupied = slot.id === occupiedId;
-          const isHistoricallyOccupied = slot.status === "Ocupado";
+          const isHistoricallyOccupied =
+            slot.status === "Ocupado" ||
+            slot.status === "Alocado" ||
+            slot.status === "Realocado";
           const isOccupied = isNewlyOccupied || isHistoricallyOccupied;
-          const isHazardous = slot.isIMO;
 
+          // Tratamento estrito do IMO vindo da planilha
+          const isHazardous = slot.isIMO === true;
+
+          // 1. Processamento Multi-Filtros para o Dimming
+          const matchesSearch =
+            filters.searchId === "" ||
+            slot.containerId
+              ?.toLowerCase()
+              .includes(filters.searchId.toLowerCase()) ||
+            slot.id.toLowerCase().includes(filters.searchId.toLowerCase());
+
+          const matchesPeso =
+            filters.peso === "" || (slot.peso && slot.peso === filters.peso);
+
+          const matchesIMO =
+            filters.isIMO === "Todos" ||
+            (filters.isIMO === "Sim" && isHazardous) ||
+            (filters.isIMO === "Nao" && !isHazardous);
+
+          const matchesZone =
+            filters.zone === "Todas" ||
+            slot.zone?.toUpperCase() === filters.zone.toUpperCase();
+
+          const matchesStatus =
+            filters.status === "Todos" ||
+            (filters.status === "Vazio" && !isOccupied) ||
+            (filters.status === "Livre" && !isOccupied) ||
+            (isOccupied &&
+              (filters.status === "Ocupado" ||
+                (filters.status === "Alocado" && slot.status === "Alocado") ||
+                (filters.status === "Realocado" &&
+                  slot.status === "Realocado")));
+
+          const matchesChegada =
+            filters.dataChegada === "" ||
+            (slot.dataChegada &&
+              slot.dataChegada.includes(filters.dataChegada.replace("T", " ")));
+
+          const matchesSaida =
+            filters.dataSaida === "" ||
+            (slot.dataSaida &&
+              slot.dataSaida.includes(filters.dataSaida.replace("T", " ")));
+
+          const isFilteredOut = !(
+            matchesSearch &&
+            matchesPeso &&
+            matchesIMO &&
+            matchesZone &&
+            matchesStatus &&
+            matchesChegada &&
+            matchesSaida
+          );
+
+          // 2. Cores da Vaga
           let statusClasses =
             "border-border bg-background/40 hover:border-primary/40";
 
@@ -126,10 +186,15 @@ export function YardMap({
                 "border-primary bg-primary/20";
           }
 
+          // 3. Aplicação do Dimming (Preserva a estrutura física do grid)
+          const opacityClass = isFilteredOut
+            ? "opacity-15 grayscale transition-opacity duration-300"
+            : "opacity-100 transition-opacity duration-300";
+
           return (
             <div
               key={slot.id}
-              className={`relative flex aspect-square flex-col items-center justify-center rounded-lg border text-center transition-colors ${statusClasses}`}
+              className={`relative flex aspect-square flex-col items-center justify-center rounded-lg border text-center transition-colors ${statusClasses} ${opacityClass}`}
               onClick={(e) => {
                 e.preventDefault();
                 if (!isOccupied && isGrabbed) {
@@ -156,13 +221,13 @@ export function YardMap({
                     <div className="flex justify-between text-[9px]">
                       <span className="text-muted-foreground">Chegada:</span>
                       <span className="font-mono text-foreground">
-                        {slot.dataSaida?.substring(0, 30) || "--"}
+                        {slot.dataChegada?.substring(0, 30) || "--"}
                       </span>
                     </div>
                     <div className="flex justify-between text-[9px]">
                       <span className="text-muted-foreground">Saída:</span>
                       <span className="font-mono text-foreground">
-                        {slot.zone || "-"}
+                        {slot.dataSaida?.substring(0, 30) || "--"}
                       </span>
                     </div>
                   </div>
