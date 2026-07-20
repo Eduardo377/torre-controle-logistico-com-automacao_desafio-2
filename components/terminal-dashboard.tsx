@@ -82,38 +82,43 @@ export function TerminalDashboard() {
         const rows = csvText.split("\n").slice(1);
         const loadedSlots = rows
           .map((row) => {
-            const [
-              posId,
-              status,
-              idContainer,
-              peso,
-              dataHora,
-              saidaPrevista,
-              zona,
-              imo,
-            ] = row.split(",");
+            const cols = row.split(",").map((c) => c.replace(/"/g, "").trim());
+            const posId = cols[0];
+
+            if (!posId) return null;
+
+            const status = cols[1];
+            const idContainer = cols[2];
+            const peso = cols[3];
+            const dataHora = cols[4];
+            const saidaPrevista = cols[5];
+            const zona = cols[6];
+
+            const isImoTrue = cols.some(
+              (col) => col.toUpperCase() === "TRUE" || col === "1",
+            );
+
             return {
-              id: posId?.trim(),
-              label: posId?.trim(),
-              status: status?.trim(),
-              containerId: idContainer?.replace(/"/g, "").trim(),
-              peso: peso?.replace(/"/g, "").trim(),
-              dataChegada: dataHora?.replace(/"/g, "").trim(),
-              dataSaida: saidaPrevista?.replace(/"/g, "").trim(),
-              zone: zona?.replace(/"/g, "").trim(),
-              // Conversão explícita de string do CSV para boolean estrito
-              isIMO: imo?.replace(/"/g, "").trim().toUpperCase() === "TRUE",
+              id: posId,
+              label: posId,
+              status: status,
+              containerId: idContainer,
+              peso: peso,
+              dataChegada: dataHora,
+              dataSaida: saidaPrevista,
+              zone: zona,
+              isIMO: isImoTrue,
             };
           })
-          .filter((s) => s.id);
-        setSlots(loadedSlots);
+          .filter((s): s is NonNullable<typeof s> => s !== null && !!s.id);
+
+        setSlots(loadedSlots as Slot[]);
       } catch (error) {
         console.error("Erro ao carregar o pátio:", error);
       }
     }
     fetchYardMap();
   }, [MAPA_PATIO_CSV_URL]);
-
   type WebhookResponse = {
     targetSlot?: string;
     justificativa?: string;
