@@ -36,7 +36,6 @@ export function YardMap({
     }
   }, [targetId]);
 
-  // Renderiza TODOS os slots do nível atual (Geografia Fixa Garantida)
   const visibleSlots = slots.filter((slot) =>
     slot.id.endsWith(`-N${selectedLevel}`),
   );
@@ -118,7 +117,7 @@ export function YardMap({
             slot.status === "Realocado";
           const isOccupied = isNewlyOccupied || isHistoricallyOccupied;
 
-          // Tratamento estrito do IMO vindo da planilha
+          // Tratamento estrito do IMO vindo da planilha (Mantido Intacto)
           const isHazardous = slot.isIMO === true;
 
           // 1. Processamento Multi-Filtros para o Dimming
@@ -151,15 +150,36 @@ export function YardMap({
                 (filters.status === "Realocado" &&
                   slot.status === "Realocado")));
 
-          const matchesChegada =
-            filters.dataChegada === "" ||
-            (slot.dataChegada &&
-              slot.dataChegada.includes(filters.dataChegada.replace("T", " ")));
+          // Validação de Período por Intervalo de Dias (YYYY-MM-DD)
+          let matchesPeriodo = true;
+          const hasPeriodFilter = Boolean(
+            filters.dataInicio || filters.dataFim,
+          );
 
-          const matchesSaida =
-            filters.dataSaida === "" ||
-            (slot.dataSaida &&
-              slot.dataSaida.includes(filters.dataSaida.replace("T", " ")));
+          if (hasPeriodFilter) {
+            // O SEGREDO ESTÁ AQUI: A data real (DD/MM/YYYY) está mapeada em dataSaida
+            const targetDate = slot.dataSaida;
+
+            if (!targetDate || !targetDate.includes("/")) {
+              matchesPeriodo = false; // Vagas vazias ou sem data válida caem fora
+            } else {
+              const parts = targetDate.trim().split(" ");
+              const [datePart] = parts; // "10/07/2026"
+              const [day, month, year] = datePart.split("/");
+
+              const slotDateStr = `${year}-${month}-${day}`; // "2026-07-10"
+
+              const startDateStr = filters.dataInicio || ""; // "2026-07-09"
+              const endDateStr = filters.dataFim || ""; // "2026-07-11"
+
+              const isAfterOrEqualStart =
+                startDateStr === "" || slotDateStr >= startDateStr;
+              const isBeforeOrEqualEnd =
+                endDateStr === "" || slotDateStr <= endDateStr;
+
+              matchesPeriodo = isAfterOrEqualStart && isBeforeOrEqualEnd;
+            }
+          }
 
           const isFilteredOut = !(
             matchesSearch &&
@@ -167,8 +187,7 @@ export function YardMap({
             matchesIMO &&
             matchesZone &&
             matchesStatus &&
-            matchesChegada &&
-            matchesSaida
+            matchesPeriodo
           );
 
           // 2. Cores da Vaga

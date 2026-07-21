@@ -39,15 +39,14 @@ export function TerminalDashboard() {
   const [isGrabbed, setIsGrabbed] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
-  // Estado completo dos Filtros e Ordenação Temporal
   const [filters, setFilters] = useState<FilterState>({
     searchId: "",
     peso: "",
     status: "Todos",
     zone: "Todas",
     isIMO: "Todos",
-    dataChegada: "",
-    dataSaida: "",
+    dataInicio: "",
+    dataFim: "",
     sortBy: "nenhum",
   });
 

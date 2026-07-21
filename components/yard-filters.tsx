@@ -14,8 +14,8 @@ export type FilterState = {
   status: "Todos" | "Alocado" | "Realocado" | "Ocupado" | "Vazio" | "Livre";
   zone: Zone | "Todas";
   isIMO: "Todos" | "Sim" | "Nao";
-  dataChegada: string;
-  dataSaida: string;
+  dataInicio: string;
+  dataFim: string;
   sortBy:
     | "nenhum"
     | "chegada_asc"
@@ -149,29 +149,33 @@ export function YardFilters({ filters, onChange }: YardFiltersProps) {
           </select>
         </div>
 
+        {/* Data Início do Período */}
         <div className="relative">
           <Calendar
             className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
           />
           <input
-            type="datetime-local"
-            value={filters.dataChegada}
-            onChange={(e) => onChange({ dataChegada: e.target.value })}
+            type="date"
+            value={filters.dataInicio}
+            onChange={(e) => onChange({ dataInicio: e.target.value })}
             className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm text-foreground [color-scheme:dark] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            title="Data Inicial"
           />
         </div>
 
+        {/* Data Fim do Período */}
         <div className="relative">
           <Calendar
             className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
             aria-hidden="true"
           />
           <input
-            type="datetime-local"
-            value={filters.dataSaida}
-            onChange={(e) => onChange({ dataSaida: e.target.value })}
+            type="date"
+            value={filters.dataFim}
+            onChange={(e) => onChange({ dataFim: e.target.value })}
             className="h-10 w-full rounded-lg border border-input bg-background pl-9 pr-3 text-sm text-foreground [color-scheme:dark] focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            title="Data Final"
           />
         </div>
       </div>
