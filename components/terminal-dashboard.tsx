@@ -226,15 +226,16 @@ export function TerminalDashboard() {
   async function handleDropSlot(slotId: string) {
     if (!containerReady || occupiedId) return;
 
+    if (slotId !== targetId) return;
+
     setOccupiedId(slotId);
     setContainerReady(false);
     setIsGrabbed(false);
     setResult({
-      kind: slotId === targetId ? "success" : "risk",
+      kind: "success",
       slot: slotId,
     });
 
-    // Extrai a zona real direto do prefixo da vaga (ex: "FROZEN-E1-N1" -> "FROZEN")
     const realZone = slotId.split("-")[0];
 
     try {
