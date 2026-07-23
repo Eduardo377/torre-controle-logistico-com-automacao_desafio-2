@@ -1,9 +1,8 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import type { Slot } from "@/lib/yard";
 import { ROWS_COUNT, LEVELS_COUNT } from "@/lib/yard";
-import { Crosshair, Layers } from "lucide-react";
+import { Crosshair, Layers, AlertTriangle } from "lucide-react";
 import type { FilterState } from "@/components/yard-filters";
 
 type YardMapProps = {
@@ -200,10 +199,10 @@ export function YardMap({
             }
 
             if (isOccupied) {
-              statusClasses = isHazardous
-                ? "border-destructive bg-destructive/30"
-                : zoneBgColors[slot.zone?.toUpperCase() || "HOT"] ||
-                  "border-primary bg-primary/20";
+              // Removemos o override vermelho. Agora a vaga IMO respeita a cor de sua zona base
+              statusClasses =
+                zoneBgColors[slot.zone?.toUpperCase() || "HOT"] ||
+                "border-primary bg-primary/20";
             }
 
             // 3. Aplicação do Dimming
@@ -214,7 +213,7 @@ export function YardMap({
             return (
               <div
                 key={slot.id}
-                className={`relative flex aspect-square flex-col items-center justify-center rounded-lg border text-center transition-colors ${statusClasses} ${opacityClass}`}
+                className={`relative flex aspect-square flex-col items-center justify-center overflow-hidden rounded-lg border text-center transition-colors ${statusClasses} ${opacityClass}`}
                 onClick={(e) => {
                   e.preventDefault();
                   if (!isOccupied && isGrabbed && !isFilteredOut) {
@@ -222,8 +221,17 @@ export function YardMap({
                   }
                 }}
               >
+                {/* Marca d'água de Carga Perigosa (IMO) no canto inferior direito */}
+                {isOccupied && isHazardous && (
+                  <AlertTriangle
+                    className="pointer-events-none absolute bottom-1 right-1 size-11 text-yellow-500/25"
+                    fill="currentColor"
+                    aria-hidden="true"
+                  />
+                )}
+
                 {isOccupied ? (
-                  <div className="flex h-full w-full flex-col justify-between p-2 text-left">
+                  <div className="relative z-10 flex h-full w-full flex-col justify-between p-2 text-left">
                     {/* Cabeçalho: Endereço, Peso e ID */}
                     <div className="mb-1 border-b border-white/10 pb-1">
                       <div className="flex items-center justify-between">
