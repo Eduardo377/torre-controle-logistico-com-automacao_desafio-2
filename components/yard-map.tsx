@@ -101,167 +101,171 @@ export function YardMap({
         </div>
       </header>
 
-      {/* Grid Fixo com Dimming (Esmaecimento) */}
-      <div
-        className="grid flex-1 gap-3"
-        style={{
-          gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))`,
-        }}
-      >
-        {visibleSlots.map((slot) => {
-          const isTarget = slot.id === targetId;
-          const isNewlyOccupied = slot.id === occupiedId;
-          const isHistoricallyOccupied =
-            slot.status === "Ocupado" ||
-            slot.status === "Alocado" ||
-            slot.status === "Realocado";
-          const isOccupied = isNewlyOccupied || isHistoricallyOccupied;
+      {/* Wrapper de Rolagem Vertical (Exibe ~25 vagas) */}
+      <div className="max-h-[640px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-border/50 scrollbar-track-transparent">
+        {/* Grid Fixo com Dimming (Esmaecimento) */}
+        <div
+          className="grid flex-1 gap-3"
+          style={{
+            gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))`,
+          }}
+        >
+          {visibleSlots.map((slot) => {
+            const isTarget = slot.id === targetId;
+            const isNewlyOccupied = slot.id === occupiedId;
+            const isHistoricallyOccupied =
+              slot.status === "Ocupado" ||
+              slot.status === "Alocado" ||
+              slot.status === "Realocado";
+            const isOccupied = isNewlyOccupied || isHistoricallyOccupied;
 
-          // Tratamento estrito do IMO vindo da planilha (Mantido Intacto)
-          const isHazardous = slot.isIMO === true;
+            // Tratamento estrito do IMO vindo da planilha
+            const isHazardous = slot.isIMO === true;
 
-          // 1. Processamento Multi-Filtros para o Dimming
-          const matchesSearch =
-            filters.searchId === "" ||
-            slot.containerId
-              ?.toLowerCase()
-              .includes(filters.searchId.toLowerCase()) ||
-            slot.id.toLowerCase().includes(filters.searchId.toLowerCase());
+            // 1. Processamento Multi-Filtros para o Dimming
+            const matchesSearch =
+              filters.searchId === "" ||
+              slot.containerId
+                ?.toLowerCase()
+                .includes(filters.searchId.toLowerCase()) ||
+              slot.id.toLowerCase().includes(filters.searchId.toLowerCase());
 
-          const matchesPeso =
-            filters.peso === "" || (slot.peso && slot.peso === filters.peso);
+            const matchesPeso =
+              filters.peso === "" || (slot.peso && slot.peso === filters.peso);
 
-          const matchesIMO =
-            filters.isIMO === "Todos" ||
-            (filters.isIMO === "Sim" && isHazardous) ||
-            (filters.isIMO === "Nao" && !isHazardous);
+            const matchesIMO =
+              filters.isIMO === "Todos" ||
+              (filters.isIMO === "Sim" && isHazardous) ||
+              (filters.isIMO === "Nao" && !isHazardous);
 
-          const matchesZone =
-            filters.zone === "Todas" ||
-            slot.zone?.toUpperCase() === filters.zone.toUpperCase();
+            const matchesZone =
+              filters.zone === "Todas" ||
+              slot.zone?.toUpperCase() === filters.zone.toUpperCase();
 
-          const matchesStatus =
-            filters.status === "Todos" ||
-            (filters.status === "Vazio" && !isOccupied) ||
-            (filters.status === "Livre" && !isOccupied) ||
-            (isOccupied &&
-              (filters.status === "Ocupado" ||
-                (filters.status === "Alocado" && slot.status === "Alocado") ||
-                (filters.status === "Realocado" &&
-                  slot.status === "Realocado")));
+            const matchesStatus =
+              filters.status === "Todos" ||
+              (filters.status === "Vazio" && !isOccupied) ||
+              (filters.status === "Livre" && !isOccupied) ||
+              (isOccupied &&
+                (filters.status === "Ocupado" ||
+                  (filters.status === "Alocado" && slot.status === "Alocado") ||
+                  (filters.status === "Realocado" &&
+                    slot.status === "Realocado")));
 
-          // Validação de Período por Intervalo de Dias (YYYY-MM-DD)
-          let matchesPeriodo = true;
-          const hasPeriodFilter = Boolean(
-            filters.dataInicio || filters.dataFim,
-          );
+            // Validação de Período por Intervalo de Dias (YYYY-MM-DD)
+            let matchesPeriodo = true;
+            const hasPeriodFilter = Boolean(
+              filters.dataInicio || filters.dataFim,
+            );
 
-          if (hasPeriodFilter) {
-            // Voltamos a usar dataChegada, pois o parser agora está corrigido!
-            const targetDate = slot.dataChegada;
+            if (hasPeriodFilter) {
+              const targetDate = slot.dataChegada;
 
-            if (!targetDate || !targetDate.includes("/")) {
-              matchesPeriodo = false; // Vagas vazias ou sem data válida caem fora
-            } else {
-              const parts = targetDate.trim().split(" ");
-              const [datePart] = parts; // "10/07/2026"
-              const [day, month, year] = datePart.split("/");
+              if (!targetDate || !targetDate.includes("/")) {
+                matchesPeriodo = false; // Vagas vazias ou sem data válida caem fora
+              } else {
+                const parts = targetDate.trim().split(" ");
+                const [datePart] = parts; // "10/07/2026"
+                const [day, month, year] = datePart.split("/");
 
-              const slotDateStr = `${year}-${month}-${day}`; // "2026-07-10"
+                const slotDateStr = `${year}-${month}-${day}`; // "2026-07-10"
+                const startDateStr = filters.dataInicio || ""; // "2026-07-09"
+                const endDateStr = filters.dataFim || ""; // "2026-07-11"
 
-              const startDateStr = filters.dataInicio || ""; // "2026-07-09"
-              const endDateStr = filters.dataFim || ""; // "2026-07-11"
+                const isAfterOrEqualStart =
+                  startDateStr === "" || slotDateStr >= startDateStr;
+                const isBeforeOrEqualEnd =
+                  endDateStr === "" || slotDateStr <= endDateStr;
 
-              const isAfterOrEqualStart =
-                startDateStr === "" || slotDateStr >= startDateStr;
-              const isBeforeOrEqualEnd =
-                endDateStr === "" || slotDateStr <= endDateStr;
-
-              matchesPeriodo = isAfterOrEqualStart && isBeforeOrEqualEnd;
+                matchesPeriodo = isAfterOrEqualStart && isBeforeOrEqualEnd;
+              }
             }
-          }
 
-          const isFilteredOut = !(
-            matchesSearch &&
-            matchesPeso &&
-            matchesIMO &&
-            matchesZone &&
-            matchesStatus &&
-            matchesPeriodo
-          );
+            const isFilteredOut = !(
+              matchesSearch &&
+              matchesPeso &&
+              matchesIMO &&
+              matchesZone &&
+              matchesStatus &&
+              matchesPeriodo
+            );
 
-          // 2. Cores da Vaga
-          let statusClasses =
-            "border-border bg-background/40 hover:border-primary/40";
+            // 2. Cores da Vaga
+            let statusClasses =
+              "border-border bg-background/40 hover:border-primary/40";
 
-          if (isTarget) {
-            statusClasses = "animate-target-pulse border-primary bg-primary/5";
-          }
+            if (isTarget) {
+              statusClasses =
+                "animate-target-pulse border-primary bg-primary/5";
+            }
 
-          if (isOccupied) {
-            statusClasses = isHazardous
-              ? "border-destructive bg-destructive/30"
-              : zoneBgColors[slot.zone?.toUpperCase() || "HOT"] ||
-                "border-primary bg-primary/20";
-          }
+            if (isOccupied) {
+              statusClasses = isHazardous
+                ? "border-destructive bg-destructive/30"
+                : zoneBgColors[slot.zone?.toUpperCase() || "HOT"] ||
+                  "border-primary bg-primary/20";
+            }
 
-          // 3. Aplicação do Dimming
-          const opacityClass = isFilteredOut
-            ? "opacity-15 grayscale transition-opacity duration-300 pointer-events-none"
-            : "opacity-100 transition-opacity duration-300";
+            // 3. Aplicação do Dimming
+            const opacityClass = isFilteredOut
+              ? "opacity-15 grayscale transition-opacity duration-300 pointer-events-none"
+              : "opacity-100 transition-opacity duration-300";
 
-          return (
-            <div
-              key={slot.id}
-              className={`relative flex aspect-square flex-col items-center justify-center rounded-lg border text-center transition-colors ${statusClasses} ${opacityClass}`}
-              onClick={(e) => {
-                e.preventDefault();
-                if (!isOccupied && isGrabbed && !isFilteredOut) {
-                  onDropSlot(slot.id);
-                }
-              }}
-            >
-              {isOccupied ? (
-                <div className="flex h-full w-full flex-col justify-between p-2 text-left">
-                  {/* Cabeçalho: Endereço, Peso e ID */}
-                  <div className="mb-1 border-b border-white/10 pb-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-mono text-[10px] text-muted-foreground/80">
-                        {slot.label}
-                      </span>
-                      <span className="font-mono text-[10px] text-muted-foreground/80">
-                        {slot.peso || "0"}t
-                      </span>
+            return (
+              <div
+                key={slot.id}
+                className={`relative flex aspect-square flex-col items-center justify-center rounded-lg border text-center transition-colors ${statusClasses} ${opacityClass}`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  if (!isOccupied && isGrabbed && !isFilteredOut) {
+                    onDropSlot(slot.id);
+                  }
+                }}
+              >
+                {isOccupied ? (
+                  <div className="flex h-full w-full flex-col justify-between p-2 text-left">
+                    {/* Cabeçalho: Endereço, Peso e ID */}
+                    <div className="mb-1 border-b border-white/10 pb-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-mono text-[10px] text-muted-foreground/80">
+                          {slot.label}
+                        </span>
+                        <span className="font-mono text-[10px] text-muted-foreground/80">
+                          {slot.peso || "0"}t
+                        </span>
+                      </div>
+                      <div className="mt-0.5 w-full truncate font-mono text-[13px] font-bold text-white">
+                        {isNewlyOccupied ? containerId : slot.containerId}
+                      </div>
                     </div>
-                    <div className="mt-0.5 w-full truncate font-mono text-[13px] font-bold text-white">
-                      {isNewlyOccupied ? containerId : slot.containerId}
+
+                    {/* Metadados: Chegada e Saída */}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex flex-col text-[9px] leading-tight">
+                        <span className="text-muted-foreground/70">
+                          Chegada:
+                        </span>
+                        <span className="truncate font-mono text-foreground">
+                          {slot.dataChegada?.substring(0, 30) || "--"}
+                        </span>
+                      </div>
+                      <div className="flex flex-col text-[9px] leading-tight">
+                        <span className="text-muted-foreground/70">Saída:</span>
+                        <span className="truncate font-mono text-foreground">
+                          {slot.dataSaida?.substring(0, 30) || "--"}
+                        </span>
+                      </div>
                     </div>
                   </div>
-
-                  {/* Metadados: Chegada e Saída */}
-                  <div className="flex flex-col gap-1">
-                    <div className="flex flex-col text-[9px] leading-tight">
-                      <span className="text-muted-foreground/70">Chegada:</span>
-                      <span className="truncate font-mono text-foreground">
-                        {slot.dataChegada?.substring(0, 30) || "--"}
-                      </span>
-                    </div>
-                    <div className="flex flex-col text-[9px] leading-tight">
-                      <span className="text-muted-foreground/70">Saída:</span>
-                      <span className="truncate font-mono text-foreground">
-                        {slot.dataSaida?.substring(0, 30) || "--"}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <span className="font-mono text-xs font-medium text-muted-foreground">
-                  {slot.label}
-                </span>
-              )}
-            </div>
-          );
-        })}
+                ) : (
+                  <span className="font-mono text-xs font-medium text-muted-foreground">
+                    {slot.label}
+                  </span>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </section>
   );
