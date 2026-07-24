@@ -146,3 +146,23 @@ Projeto desenvolvido como parte do desafio técnico da **KODIE Academy** em parc
 ---
 
 ## 👨‍💻 Desenvolvido por
+
+<div>
+  <a href="https://www.linkedin.com/in/eduardogomes377">
+    <img src="https://github.com/Eduardo377.png" width="120px;" alt="Foto de Eduardo Gomes Andrade" style="border-radius: 50%;"/>
+  </a>
+  <br />
+  <strong>Eduardo Andrade</strong>
+  <br />
+  <em>Full Stack Developer</em>
+  <br />
+  <em>Cyber Security</em>
+  <br />
+
+  <a href="https://www.linkedin.com/in/eduardogomes377" target="_blank">
+    <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"/>
+  </a>
+  <a href="mailto:eduardogomes377@gmail.com" target="_blank">
+    <img src="https://img.shields.io/badge/Gmail-D14836?style=for-the-badge&logo=gmail&logoColor=white" alt="Gmail"/>
+  </a>
+</div>
