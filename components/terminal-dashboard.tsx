@@ -9,6 +9,7 @@ import { GhostContainer } from "@/components/ghost-container";
 import { ContainerGrabber } from "@/components/container-grabber";
 import { StatusAlerts } from "@/components/status-alerts";
 import { YardFilters, type FilterState } from "@/components/yard-filters";
+import { DashboardMetrics } from "@/components/dashboard-metrics";
 
 type Result = { kind: "success" | "risk"; slot: string } | null;
 
@@ -288,6 +289,8 @@ export function TerminalDashboard() {
         zone={data.zone}
         onGrab={() => setIsGrabbed(true)}
       />
+
+      <DashboardMetrics slots={slots} />
 
       <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,380px)_1fr]">
         <div className="sticky top-6 z-10">
