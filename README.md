@@ -155,9 +155,9 @@ Projeto desenvolvido como parte do desafio técnico da **KODIE Academy** em parc
       </a>
     </td>
     <td>
-      <strong>Eduardo Andrade</strong><br />
-      <em>Full Stack Developer </em><br />
-      <em>Cyber Security </em><br />
+    <strong>Eduardo Andrade</strong><br/>
+      <em>Full Stack Developer</em><br />
+      <em>Security Engineer</em><br><br />
       <a href="https://www.linkedin.com/in/eduardogomes377" target="_blank">
         <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"/>
       </a>
